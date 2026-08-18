@@ -1,22 +1,25 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EGY Funded</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- مكتبة EmailJS لإرسال إيميل الترحيب -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            font-family: Arial, sans-serif;
             background-color: #0b0e14;
             color: #ffffff;
-            overflow: hidden;
-            height: 100vh;
+            overflow-x: hidden;
+            min-height: 100vh;
         }
 
         /* الشريط العلوي */
@@ -33,98 +36,308 @@
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #00ff88;
         }
 
-        /* خلفية الـ Trading Chart المتحركة */
+        .nav-buttons button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 8px 18px;
+            margin-left: 10px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .nav-buttons button:hover {
+            background: #00cc6a;
+        }
+
+        /* خلفية الأسهم المتحركة */
         #chartCanvas {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.35;
+            opacity: 0.3;
+        }
+
+        /* حاوية النوافذ (Modal) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 20;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #141923;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #00ff88;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #2a3245;
+            background: #0b0e14;
+            color: #fff;
+            outline: none;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #00ff88;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* منطقة المحتوى الخاص بالمستخدم / الأدمن */
+        .main-content {
+            position: relative;
+            z-index: 5;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: #ff3366;
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div class="logo">
-            📈 EGY Funded
+        <div class="logo">📈 EGY Funded</div>
+        <div class="nav-buttons" id="authButtons">
+            <button onclick="openModal('loginModal')">تسجيل الدخول</button>
+            <button onclick="openModal('signupModal')">إنشاء حساب</button>
+        </div>
+        <div id="userInfo" style="display: none;">
+            <span id="userEmailDisplay"></span>
+            <button onclick="logout()" style="background:#ff3366; color:#fff; border:none; padding:6px 12px; border-radius:5px; margin-right:10px; cursor:pointer;">خروج</button>
         </div>
     </div>
 
-    <!-- كانفاس الخلفية المتحركة -->
+    <!-- كانفاس الخلفية -->
     <canvas id="chartCanvas"></canvas>
 
+    <!-- محتوى الصفحة -->
+    <div class="main-content">
+        <h1 id="welcomeTitle">أهلاً بك في EGY Funded</h1>
+        <p id="welcomeSub">منصتك الاحترافية للتداول والاستثمار</p>
+        <div id="adminPanel" style="display: none; margin-top: 30px; padding: 20px; background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; border-radius: 10px;">
+            <span class="admin-badge">صاحب الموقع (BOSS)</span>
+            <h3 style="margin-top: 10px;">لوحة تحكم الإدارة الخاصة بك يا مازن 👑</h3>
+            <p style="font-size: 14px; color: #ccc; margin-top: 5px;">كل الصلاحيات والتحكم الكامل في الموقع متوفرة لك الآن.</p>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل الدخول -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('loginModal')">&times;</span>
+            <h2>تسجيل الدخول</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="input-group">
+                    <label>كلمة السر</label>
+                    <input type="password" id="loginPass" required>
+                </div>
+                <button type="submit" class="submit-btn">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة إنشاء حساب -->
+    <div class="modal" id="signupModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('signupModal')">&times;</span>
+            <h2>حساب جديد</h2>
+            <form onsubmit="handleSignup(event)">
+                <div class="input-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="signupName" required>
+                </div>
+                <div class="input-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="signupEmail" required>
+                </div>
+                <div class="input-group">
+                    <label>كلمة السر</label>
+                    <input type="password" id="signupPass" required>
+                </div>
+                <button type="submit" class="submit-btn">إنشاء الحساب</button>
+            </form>
+        </div>
+    </div>
+
     <script>
+        // التهيئة لإرسال البريد الإلكتروني تلقائياً عبر EmailJS
+        (function(){
+            emailjs.init("YOUR_PUBLIC_KEY"); // استبدل هذا بالمفتاح الخاص بك من موقع EmailJS ليعمل إرسال الإيميلات
+        })();
+
+        // بيانات الأدمن (صاحب الموقع)
+        const ADMIN_EMAIL = "mazenmizo2013099@gmail.com";
+        const ADMIN_PASS = "mazenmizoPOIUYTREWQ@011";
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // تسجيل الدخول
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+
+            if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+                alert("أهلاً بك يا بطل! تم تسجيل دخولك كـ BOSS للموقع 👑");
+                loginUser(email, true);
+            } else {
+                alert("تم تسجيل الدخول بنجاح!");
+                loginUser(email, false);
+            }
+            closeModal('loginModal');
+        }
+
+        // إنشاء حساب وإرسال إيميل
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+
+            // إرسال إيميل تأكيد عبر EmailJS
+            emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+                to_name: name,
+                to_email: email,
+                message: "أهلاً بك في EGY Funded! تم إنشاء حسابك بنجاح وأصبحت الآن عضواً معنا."
+            }).then(function() {
+                console.log("تم إرسال الإيميل بنجاح!");
+            }, function(error) {
+                console.log("حدث خطأ أثناء إرسال الإيميل:", error);
+            });
+
+            alert(`أهلاً بك يا ${name}! تم إنشاء حسابك بنجاح وتم إرسال رسالة تأكيد إلى بريدك.`);
+            loginUser(email, email === ADMIN_EMAIL);
+            closeModal('signupModal');
+        }
+
+        function loginUser(email, isAdmin) {
+            document.getElementById('authButtons').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('userEmailDisplay').innerText = email;
+
+            if (isAdmin) {
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('welcomeTitle').innerText = "مرحباً بك يا رئيس المنصة 👑";
+            }
+        }
+
+        function logout() {
+            document.getElementById('authButtons').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('welcomeTitle').innerText = "أهلاً بك في EGY Funded";
+        }
+
+        /* خلفية الأسهم المتحركة */
         const canvas = document.getElementById('chartCanvas');
         const ctx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // إنشاء أسهم وخطوط التداول المتحركة
         const arrows = [];
-        const numArrows = 25;
-
-        for (let i = 0; i < numArrows; i++) {
+        for (let i = 0; i < 25; i++) {
             arrows.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
                 length: Math.random() * 80 + 40,
                 speed: Math.random() * 1.5 + 0.5,
-                angle: -Math.PI / 4, // اتجاه السهم للأعلى واليمين (صعود التداول)
+                angle: -Math.PI / 4,
                 color: Math.random() > 0.4 ? '#00ff88' : '#ff3366'
             });
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // رسم شبكة خلفية (Grid)
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < canvas.width; x += 40) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += 40) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
+            for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+            for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
 
-            // تحريك ورسم الأسهم والـ Flow lines
             arrows.forEach(arrow => {
                 ctx.strokeStyle = arrow.color;
                 ctx.fillStyle = arrow.color;
                 ctx.lineWidth = 2;
-
                 const endX = arrow.x + Math.cos(arrow.angle) * arrow.length;
                 const endY = arrow.y + Math.sin(arrow.angle) * arrow.length;
 
-                // رسم خط السهم
                 ctx.beginPath();
                 ctx.moveTo(arrow.x, arrow.y);
                 ctx.lineTo(endX, endY);
                 ctx.stroke();
 
-                // رسم رأس السهم
                 const headlen = 8;
                 ctx.beginPath();
                 ctx.moveTo(endX, endY);
@@ -132,22 +345,17 @@
                 ctx.lineTo(endX - headlen * Math.cos(arrow.angle + Math.PI / 6), endY - headlen * Math.sin(arrow.angle + Math.PI / 6));
                 ctx.fill();
 
-                // تحريك السهم
                 arrow.x += Math.cos(arrow.angle) * arrow.speed;
                 arrow.y += Math.sin(arrow.angle) * arrow.speed;
 
-                // إعادتهم للشاشة عند الخروج
                 if (arrow.x > canvas.width || arrow.y < 0) {
                     arrow.x = Math.random() * canvas.width - 200;
                     arrow.y = canvas.height + 50;
                 }
             });
-
             requestAnimationFrame(draw);
         }
-
         draw();
     </script>
-
 </body>
 </html>
