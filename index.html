@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EGY Funded</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <!-- مكتبة EmailJS لإرسال إيميل الترحيب -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * {
@@ -22,7 +21,6 @@
             min-height: 100vh;
         }
 
-        /* الشريط العلوي */
         .navbar {
             position: relative;
             z-index: 10;
@@ -57,7 +55,6 @@
             background: #00cc6a;
         }
 
-        /* خلفية الأسهم المتحركة */
         #chartCanvas {
             position: fixed;
             top: 0;
@@ -68,7 +65,6 @@
             opacity: 0.3;
         }
 
-        /* حاوية النوافذ (Modal) */
         .modal {
             display: none;
             position: fixed;
@@ -142,7 +138,6 @@
             margin-top: 10px;
         }
 
-        /* منطقة المحتوى الخاص بالمستخدم / الأدمن */
         .main-content {
             position: relative;
             z-index: 5;
@@ -176,13 +171,11 @@
         </div>
     </div>
 
-    <!-- كانفاس الخلفية -->
     <canvas id="chartCanvas"></canvas>
 
-    <!-- محتوى الصفحة -->
     <div class="main-content">
         <h1 id="welcomeTitle">أهلاً بك في EGY Funded</h1>
-        <p id="welcomeSub">منصتك الاحترافية للتداول والاستثمار</p>
+        <p id="welcomeSub">منصتك الأولى والأفضل لشراء الحسابات الممولة</p>
         <div id="adminPanel" style="display: none; margin-top: 30px; padding: 20px; background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; border-radius: 10px;">
             <span class="admin-badge">صاحب الموقع (BOSS)</span>
             <h3 style="margin-top: 10px;">لوحة تحكم الإدارة الخاصة بك يا مازن 👑</h3>
@@ -227,60 +220,121 @@
                     <label>كلمة السر</label>
                     <input type="password" id="signupPass" required>
                 </div>
-                <button type="submit" class="submit-btn">إنشاء الحساب</button>
+                <button type="submit" class="submit-btn">إرسال كود التحقق</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد كود التحقق -->
+    <div class="modal" id="verifyModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('verifyModal')">&times;</span>
+            <h2>تأكيد البريد الإلكتروني</h2>
+            <p style="font-size: 13px; color: #aaa; text-align: center; margin-bottom: 15px;">أدخل كود التحقق المكون من 6 أرقام المكون لك:</p>
+            <form onsubmit="handleVerification(event)">
+                <div class="input-group">
+                    <input type="text" id="verifyCodeInput" placeholder="أدخل الكود هنا" required style="text-align: center; font-size: 18px; letter-spacing: 5px;">
+                </div>
+                <button type="submit" class="submit-btn">تأكيد الحساب</button>
             </form>
         </div>
     </div>
 
     <script>
-        // التهيئة لإرسال البريد الإلكتروني تلقائياً عبر EmailJS
         (function(){
-            emailjs.init("YOUR_PUBLIC_KEY"); // استبدل هذا بالمفتاح الخاص بك من موقع EmailJS ليعمل إرسال الإيميلات
+            emailjs.init("YOUR_PUBLIC_KEY");
         })();
 
-        // بيانات الأدمن (صاحب الموقع)
         const ADMIN_EMAIL = "mazenmizo2013099@gmail.com";
         const ADMIN_PASS = "mazenmizoPOIUYTREWQ@011";
+
+        let tempUserData = null;
+        let generatedCode = null;
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('egy_users')) || [];
+        }
+
+        function saveUser(user) {
+            const users = getUsers();
+            users.push(user);
+            localStorage.setItem('egy_users', JSON.stringify(users));
+        }
+
         // تسجيل الدخول
         function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
+            const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPass').value;
 
+            // دخول الأدمن (مازن)
             if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-                alert("أهلاً بك يا بطل! تم تسجيل دخولك كـ BOSS للموقع 👑");
+                alert("أهلاً بك يا مازن! تم دخولك كـ BOSS للموقع 👑");
                 loginUser(email, true);
-            } else {
-                alert("تم تسجيل الدخول بنجاح!");
-                loginUser(email, false);
+                closeModal('loginModal');
+                return;
             }
-            closeModal('loginModal');
+
+            // تحقق للمستخدمين العاديين من قواعد البيانات المسجلة
+            const users = getUsers();
+            const foundUser = users.find(u => u.email === email && u.pass === pass);
+
+            if (foundUser) {
+                alert(`أهلاً بك مجدداً يا ${foundUser.name}!`);
+                loginUser(foundUser.email, false);
+                closeModal('loginModal');
+            } else {
+                alert("خطأ: البريد الإلكتروني أو كلمة السر غير صحيحة، أو أنك لم تقم بإنشاء حساب بعد!");
+            }
         }
 
-        // إنشاء حساب وإرسال إيميل
+        // بدء إنشـاء الحساب وتوليد الكود
         function handleSignup(e) {
             e.preventDefault();
-            const name = document.getElementById('signupName').value;
-            const email = document.getElementById('signupEmail').value;
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const pass = document.getElementById('signupPass').value;
 
-            // إرسال إيميل تأكيد عبر EmailJS
+            const users = getUsers();
+            if (users.some(u => u.email === email) || email === ADMIN_EMAIL) {
+                alert("هذا البريد الإلكتروني مسجل بالفعل! يمكنك تسجيل الدخول مباشرة.");
+                return;
+            }
+
+            // توليد كود عشوائي من 6 أرقام
+            generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+            tempUserData = { name, email, pass };
+
+            // إرسال الإيميل
             emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
                 to_name: name,
                 to_email: email,
-                message: "أهلاً بك في EGY Funded! تم إنشاء حسابك بنجاح وأصبحت الآن عضواً معنا."
-            }).then(function() {
-                console.log("تم إرسال الإيميل بنجاح!");
-            }, function(error) {
-                console.log("حدث خطأ أثناء إرسال الإيميل:", error);
-            });
+                code: generatedCode
+            }).catch(err => console.log("Email error:", err));
 
-            alert(`أهلاً بك يا ${name}! تم إنشاء حسابك بنجاح وتم إرسال رسالة تأكيد إلى بريدك.`);
-            loginUser(email, email === ADMIN_EMAIL);
             closeModal('signupModal');
+            openModal('verifyModal');
+            alert(`كود التحقق الخاص بك هو: ${generatedCode}\n(في البيئة الحقيقية يتم إرساله للإيميل)`);
+        }
+
+        // تأكيد الكود وحفظ الحساب
+        function handleVerification(e) {
+            e.preventDefault();
+            const inputCode = document.getElementById('verifyCodeInput').value.trim();
+
+            if (inputCode === generatedCode) {
+                saveUser(tempUserData);
+                alert("تم تأكيد حسابك وبنائه بنجاح! يمكنك الآن استخدام الموقع.");
+                loginUser(tempUserData.email, false);
+                closeModal('verifyModal');
+                tempUserData = null;
+                generatedCode = null;
+            } else {
+                alert("كود التحقق خاطئ! أعد المحاولة.");
+            }
         }
 
         function loginUser(email, isAdmin) {
