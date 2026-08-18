@@ -267,6 +267,14 @@
             localStorage.setItem('egy_users', JSON.stringify(users));
         }
 
+        // فحص الجلسة عند فتح الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = JSON.parse(localStorage.getItem('egy_logged_in_user'));
+            if (loggedInUser) {
+                loginUser(loggedInUser.email, loggedInUser.isAdmin);
+            }
+        });
+
         // تسجيل الدخول
         function handleLogin(e) {
             e.preventDefault();
@@ -313,11 +321,9 @@
                 return;
             }
 
-            // توليد كود عشوائي من 6 أرقام
             generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
             tempUserData = { name, email, pass };
 
-            // إرسال الإيميل
             emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
                 to_name: name,
                 to_email: email,
@@ -347,6 +353,9 @@
         }
 
         function loginUser(email, isAdmin) {
+            // حفظ حالة الدخول للاستمرار
+            localStorage.setItem('egy_logged_in_user', JSON.stringify({ email, isAdmin }));
+
             document.getElementById('authButtons').style.display = 'none';
             document.getElementById('userInfo').style.display = 'block';
             document.getElementById('userEmailDisplay').innerText = email;
@@ -358,6 +367,9 @@
         }
 
         function logout() {
+            // مسح حالة الدخول عند الخروج
+            localStorage.removeItem('egy_logged_in_user');
+
             document.getElementById('authButtons').style.display = 'block';
             document.getElementById('userInfo').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'none';
