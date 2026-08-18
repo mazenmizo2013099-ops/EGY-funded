@@ -178,7 +178,7 @@
         <p id="welcomeSub">منصتك الأولى والأفضل لشراء الحسابات الممولة</p>
         <div id="adminPanel" style="display: none; margin-top: 30px; padding: 20px; background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; border-radius: 10px;">
             <span class="admin-badge">صاحب الموقع (BOSS)</span>
-            <h3 style="margin-top: 10px;">لوحة تحكم الإدارة الخاصة بك يا مازن 👑</h3>
+            <h3 style="margin-top: 10px;">لوحة تحكم الإدارة الخاصة بك 👑</h3>
             <p style="font-size: 14px; color: #ccc; margin-top: 5px;">كل الصلاحيات والتحكم الكامل في الموقع متوفرة لك الآن.</p>
         </div>
     </div>
@@ -245,8 +245,11 @@
             emailjs.init("YOUR_PUBLIC_KEY");
         })();
 
-        const ADMIN_EMAIL = "mazenmizo2013099@gmail.com";
-        const ADMIN_PASS = "mazenmizoPOIUYTREWQ@011";
+        // قائمة حسابات الأدمن (BOSS)
+        const ADMINS = [
+            { email: "mazenmizo2013099@gmail.com", pass: "mazenmizoPOIUYTREWQ@011" },
+            { email: "seifabdelminiem@gmail.com", pass: "Farsh@seif12" }
+        ];
 
         let tempUserData = null;
         let generatedCode = null;
@@ -270,11 +273,16 @@
             const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPass').value;
 
-            // دخول الأدمن (مازن)
-            if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
-                alert("أهلاً بك يا مازن! تم دخولك كـ BOSS للموقع 👑");
-                loginUser(email, true);
-                closeModal('loginModal');
+            // التحقق إذا كان الحساب أدمـن (BOSS)
+            const adminMatch = ADMINS.find(a => a.email === email);
+            if (adminMatch) {
+                if (adminMatch.pass === pass) {
+                    alert("أهلاً بك! تم دخولك كـ BOSS للموقع 👑");
+                    loginUser(email, true);
+                    closeModal('loginModal');
+                } else {
+                    alert("خطأ: كلمة السر غير صحيحة لحساب الأدمن!");
+                }
                 return;
             }
 
@@ -299,7 +307,8 @@
             const pass = document.getElementById('signupPass').value;
 
             const users = getUsers();
-            if (users.some(u => u.email === email) || email === ADMIN_EMAIL) {
+            const isAlreadyAdmin = ADMINS.some(a => a.email === email);
+            if (users.some(u => u.email === email) || isAlreadyAdmin) {
                 alert("هذا البريد الإلكتروني مسجل بالفعل! يمكنك تسجيل الدخول مباشرة.");
                 return;
             }
