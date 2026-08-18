@@ -1,0 +1,82 @@
+____________________________________________________________________________
+
+System Components:
+
+Operating System    Windows v.10.0.19045.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Video    Intel(R) HD Graphics 4000 v.10.18.10.5161
+----------------------------------------------------------------------------
+1.	The current version of your Intel display driver may cause performance and stability issues.  It is strongly recommended that you update to driver version 100.8476 or later.  Drivers are provided by Intel or your computer's manufacturer.
+	URL: https://helpx.adobe.com/premiere-pro/kb/drivers-video-win-intel.html
+
+Audio    High Definition Audio Device v.10.0.19041.3636
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Audio    Intel(R) Display Audio v.6.16.0.3154
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Audio    Microsoft Streaming Service Proxy v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    Intel(R) 82579LM Gigabit Network Connection v.12.17.10.8
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    Intel(R) Centrino(R) Advanced-N 6205 v.15.16.0.2
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    Microsoft Kernel Debug Network Adapter v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    Microsoft Wi-Fi Direct Virtual Adapter v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    Microsoft Wi-Fi Direct Virtual Adapter #2 v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (IKEv2) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (IP) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (IPv6) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (L2TP) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (Network Monitor) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (PPPOE) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (PPTP) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+Network    WAN Miniport (SSTP) v.10.0.19041.1
+----------------------------------------------------------------------------
+	No conflicts to report.
+
+
+____________________________________________________________________________
+
+    Debug database settings:
+        dvaworkspace.FrameAndPanelClipOSChildren: 			 Current: false Default: 
